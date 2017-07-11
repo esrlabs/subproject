@@ -9,7 +9,10 @@ module.exports = {
 
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.
-        extensions: [".ts",".js"]
+        extensions: [".ts",".js"],
+        alias: {
+          'vue$': 'vue/dist/vue.esm.js'
+        }
     },
 
     module: {

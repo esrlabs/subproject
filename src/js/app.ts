@@ -12,7 +12,21 @@ PouchDB_.plugin(require('pouchdb-authentication'));
 
   // EDITING STARTS HERE (you dont need to edit anything above this line)
 
-  var app = new Vue({});
+  var app = new Vue({
+    el: '#todoapp',
+    data: {
+      searchString: 'search here',
+      projects: []
+    },
+    watch: {
+    },
+    computed: {
+    },
+    methods: {
+    },
+    directives: {
+    }
+  });
 
   var db = new PouchDB_('todos');
   var remoteDb: any = new PouchDB_('http://admin:admin@192.168.33.10:5984/todos', {skip_setup: true});
@@ -115,7 +129,8 @@ PouchDB_.plugin(require('pouchdb-authentication'));
   // Show the current list of todos by reading them from the database
   function showTodos() {
     db.allDocs({include_docs: true, descending: true}).then(function(doc) {
-      redrawTodosUI(doc.rows);
+      console.log(doc.rows)
+      app.$data["projects"] = doc.rows
     });
   }
 
@@ -171,29 +186,6 @@ PouchDB_.plugin(require('pouchdb-authentication'));
       var inputEditTodo = document.getElementById('input_' + todo._id);
       inputEditTodo.blur();
     }
-  }
-
-  // Given an object representing a todo, this will create a list item
-  // to display it.
-  function createTodoListItem(todo) {
-    var label = document.createElement('span');
-    label.appendChild( document.createTextNode(todo.title));
-    label.addEventListener('dblclick', todoDblClicked.bind(this, todo));
-
-    var li = document.createElement('li');
-    li.id = 'li_' + todo._id;
-    li.className = "list-group-item";
-    li.appendChild(label);
-
-    return li;
-  }
-
-  function redrawTodosUI(todos) {
-    var ul = document.getElementById('todo-list');
-    ul.innerHTML = '';
-    todos.forEach(function(todo) {
-      ul.appendChild(createTodoListItem(todo.doc));
-    });
   }
 
   function newTodoKeyPressHandler( event ) {
