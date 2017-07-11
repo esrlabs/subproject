@@ -86,15 +86,13 @@
     <div id="todoapp">
       <div id="header">
         <img id="subproject-logo" class="img-thumbnail center-block" src="style/subproject.png" />
-        <form>
-          <div class="form-group">
-            <input id="new-todo" class="form-control" placeholder="What's next?" autofocus v-model="searchString">
-          </div>
-        </form>
+        <div class="form-group">
+          <input id="new-todo" class="form-control" placeholder="What's next?" autocomplete="off" autofocus v-model="searchString" @keyup.enter="createProject">
+        </div>
       </div>
       <div id="main">
         <ul id="todo-list" class="list-group">
-          <li class="list-group-item" v-for="p in projects">{{p.doc.title}}</li>
+          <li class="list-group-item" v-for="p in filteredProjects">{{p.doc.title}}</li>
         </ul>
       </div>
     </div>

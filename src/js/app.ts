@@ -7,7 +7,6 @@ PouchDB_.plugin(require('pouchdb-authentication'));
   'use strict';
 
   var ENTER_KEY: number = 13;
-  var newTodoDom: any = document.getElementById('new-todo');
   var syncDom = document.getElementById('sync-wrapper');
 
   // EDITING STARTS HERE (you dont need to edit anything above this line)
@@ -15,14 +14,24 @@ PouchDB_.plugin(require('pouchdb-authentication'));
   var app = new Vue({
     el: '#todoapp',
     data: {
-      searchString: 'search here',
+      searchString: '',
       projects: []
     },
     watch: {
     },
     computed: {
+      filteredProjects: function() {
+        var that = this;
+        return this["projects"].filter(function (p) {
+          return p.doc.title.indexOf(that["searchString"]) > -1;
+        });
+      }
     },
     methods: {
+      createProject: function() {
+        addTodo(this["searchString"]);
+        this["searchString"] = '';
+      }
     },
     directives: {
     }
@@ -119,6 +128,7 @@ PouchDB_.plugin(require('pouchdb-authentication'));
       title: text,
       completed: false
     };
+    console.log('db.put' + todo);
     db.put(todo, function callback(err, result) {
       if (!err) {
         console.log('Successfully posted a todo!');
@@ -188,18 +198,6 @@ PouchDB_.plugin(require('pouchdb-authentication'));
     }
   }
 
-  function newTodoKeyPressHandler( event ) {
-    if (event.keyCode === ENTER_KEY) {
-      addTodo(newTodoDom.value);
-      newTodoDom.value = '';
-    }
-  }
-
-  function addEventListeners() {
-    newTodoDom.addEventListener('keypress', newTodoKeyPressHandler, false);
-  }
-
-  addEventListeners();
   setupHeadline();
   showTodos();
   showLogin();
