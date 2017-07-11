@@ -1,17 +1,17 @@
 import Vue from "vue"
 require("bootstrap");
-var PouchDB_ = require("pouchdb");
+let PouchDB_ = require("pouchdb");
 PouchDB_.plugin(require('pouchdb-authentication'));
 (function() {
 
   'use strict';
 
-  var ENTER_KEY: number = 13;
-  var syncDom = document.getElementById('sync-wrapper');
+  let ENTER_KEY: number = 13;
+  let syncDom = document.getElementById('sync-wrapper');
 
   // EDITING STARTS HERE (you dont need to edit anything above this line)
 
-  var app = new Vue({
+  let app = new Vue({
     el: '#todoapp',
     data: {
       searchString: '',
@@ -21,7 +21,7 @@ PouchDB_.plugin(require('pouchdb-authentication'));
     },
     computed: {
       filteredProjects: function() {
-        var that = this;
+        let that = this;
         return this["projects"].filter(function (p) {
           return p.doc.title.indexOf(that["searchString"]) > -1;
         });
@@ -37,14 +37,14 @@ PouchDB_.plugin(require('pouchdb-authentication'));
     }
   });
 
-  var db = new PouchDB_('todos');
-  var remoteDb: any = new PouchDB_('http://admin:admin@192.168.33.10:5984/todos', {skip_setup: true});
+  let db = new PouchDB_('todos');
+  let remoteDb: any = new PouchDB_('http://admin:admin@192.168.33.10:5984/todos', {skip_setup: true});
 
   function signupUser() {
-    var usernameInput: any = document.getElementById('signup-username');
-    var passwordInput: any = document.getElementById('signup-password');
-    var username = usernameInput.value;
-    var password = passwordInput.value;
+    let usernameInput: any = document.getElementById('signup-username');
+    let passwordInput: any = document.getElementById('signup-password');
+    let username = (<HTMLInputElement>document.getElementById('signup-username')).value;
+    let password = passwordInput.value;
     usernameInput.value = '';
     passwordInput.value = '';
     remoteDb.signup(username, password, function (err, response) {
@@ -61,10 +61,10 @@ PouchDB_.plugin(require('pouchdb-authentication'));
   }
 
   function loginUser() {
-    var usernameInput: any = document.getElementById('login-username');
-    var passwordInput: any = document.getElementById('login-password');
-    var username = usernameInput.value;
-    var password = passwordInput.value;
+    let usernameInput: any = document.getElementById('login-username');
+    let passwordInput: any = document.getElementById('login-password');
+    let username = usernameInput.value;
+    let password = passwordInput.value;
     usernameInput.value = '';
     passwordInput.value = '';
     remoteDb.login(username, password, function (err, response) {
@@ -95,24 +95,24 @@ PouchDB_.plugin(require('pouchdb-authentication'));
         console.log('getSession network error');
       } else if (!response.userCtx.name) {
         console.log('nobody logged in');
-        var statusLine = document.getElementById('status-line');
+        let statusLine = document.getElementById('status-line');
         statusLine.innerHTML = 'Nobody logged in';
       } else {
         console.log(response.userCtx.name);
-        var statusLine = document.getElementById('status-line');
+        let statusLine = document.getElementById('status-line');
         statusLine.innerHTML = 'Welcome, '+response.userCtx.name;
       }
     });
   }
 
   function setupHeadline() {
-    var signupLink = document.getElementById('signup-button');
+    let signupLink = document.getElementById('signup-button');
     signupLink.addEventListener('click', signupUser);
 
-    var loginLink = document.getElementById('login-button');
+    let loginLink = document.getElementById('login-button');
     loginLink.addEventListener('click', loginUser);
 
-    var logoutLink = document.getElementById('logout-button');
+    let logoutLink = document.getElementById('logout-button');
     logoutLink.addEventListener('click', logoutUser);
   }
 
@@ -121,9 +121,14 @@ PouchDB_.plugin(require('pouchdb-authentication'));
     live: true
   }).on('change', showTodos);
 
+  interface TodoItem {
+    readonly _id: string;
+    title: string;
+    completed: boolean;
+  }
   // We have to create a new todo document and enter it in the database
   function addTodo(text) {
-    var todo = {
+    let todo = {
       _id: new Date().toISOString(),
       title: text,
       completed: false
@@ -144,32 +149,10 @@ PouchDB_.plugin(require('pouchdb-authentication'));
     });
   }
 
-  function checkboxChanged(todo, event) {
-    todo.completed = event.target.checked;
-    db.put(todo);
-  }
-
-  // User pressed the delete button for a todo, delete it
-  function deleteButtonPressed(todo) {
-    db.remove(todo);
-  }
-
-  // The input box when editing a todo has blurred, we should save
-  // the new title or delete the todo if the title is empty
-  function todoBlurred(todo, event) {
-    var trimmedText = event.target.value.trim();
-    if (!trimmedText) {
-      db.remove(todo);
-    } else {
-      todo.title = trimmedText;
-      db.put(todo);
-    }
-  }
-
   // Initialise a sync with the remote server
   function sync() {
     syncDom.setAttribute('data-sync-state', 'syncing');
-    var opts = {live: true};
+    let opts = {live: true};
     db.replicate.to(remoteDb, opts, syncError);
     db.replicate.from(remoteDb, opts, syncError);
   }
@@ -182,9 +165,9 @@ PouchDB_.plugin(require('pouchdb-authentication'));
   }
 
   // User has double clicked a todo, display an input so they can edit the title
-  function todoDblClicked(todo) {
-    var div = document.getElementById('li_' + todo._id);
-    var inputEditTodo = document.getElementById('input_' + todo._id);
+  function todoDblClicked(todo: TodoItem) {
+    let div = document.getElementById('li_' + todo._id);
+    let inputEditTodo = document.getElementById('input_' + todo._id);
     div.className = 'editing';
     inputEditTodo.focus();
   }
@@ -193,7 +176,7 @@ PouchDB_.plugin(require('pouchdb-authentication'));
   // (or delete)
   function todoKeyPressed(todo, event) {
     if (event.keyCode === ENTER_KEY) {
-      var inputEditTodo = document.getElementById('input_' + todo._id);
+      let inputEditTodo = document.getElementById('input_' + todo._id);
       inputEditTodo.blur();
     }
   }
