@@ -1,4 +1,5 @@
 import Vue from "vue"
+import * as users from "./usermanagement";
 require("bootstrap");
 let PouchDB_ = require("pouchdb");
 PouchDB_.plugin(require('pouchdb-authentication'));
@@ -38,82 +39,19 @@ PouchDB_.plugin(require('pouchdb-authentication'));
   });
 
   let db = new PouchDB_('todos');
-  let remoteDb: any = new PouchDB_('http://admin:admin@192.168.33.10:5984/todos', {skip_setup: true});
+  let remoteDb: any = new PouchDB_('http://admin:admin@localhost:5984/todos', {skip_setup: true});
+  let login: users.UserManagement.Login = new users.UserManagement.Login(remoteDb);
 
-  function signupUser() {
-    let usernameInput: any = document.getElementById('signup-username');
-    let passwordInput: any = document.getElementById('signup-password');
-    let username = (<HTMLInputElement>document.getElementById('signup-username')).value;
-    let password = passwordInput.value;
-    usernameInput.value = '';
-    passwordInput.value = '';
-    remoteDb.signup(username, password, function (err, response) {
-      if (err) {
-        if (err.name === 'conflict') {
-          console.log('user already exists, choose another username');
-        } else if (err.name === 'forbidden') {
-          console.log('invalid username');
-        } else {
-          console.log('signup failed');
-        }
-      }
-    });
-  }
-
-  function loginUser() {
-    let usernameInput: any = document.getElementById('login-username');
-    let passwordInput: any = document.getElementById('login-password');
-    let username = usernameInput.value;
-    let password = passwordInput.value;
-    usernameInput.value = '';
-    passwordInput.value = '';
-    remoteDb.login(username, password, function (err, response) {
-      if (err) {
-        if (err.name === 'unauthorized') {
-          console.log('name or password incorrect');
-        } else {
-          console.log('login failed');
-        }
-      }
-      showLogin();
-    });
-  }
-
-  function logoutUser() {
-    remoteDb.logout(function (err, response) {
-      if (err) {
-        console.log('logout error');
-      }
-      console.log(response);
-      showLogin();
-    });
-  }
-
-  function showLogin() {
-    remoteDb.getSession(function (err, response) {
-      if (err) {
-        console.log('getSession network error');
-      } else if (!response.userCtx.name) {
-        console.log('nobody logged in');
-        let statusLine = document.getElementById('status-line');
-        statusLine.innerHTML = 'Nobody logged in';
-      } else {
-        console.log(response.userCtx.name);
-        let statusLine = document.getElementById('status-line');
-        statusLine.innerHTML = 'Welcome, '+response.userCtx.name;
-      }
-    });
-  }
 
   function setupHeadline() {
     let signupLink = document.getElementById('signup-button');
-    signupLink.addEventListener('click', signupUser);
+    signupLink.addEventListener('click', login.signupUser.bind(login));
 
     let loginLink = document.getElementById('login-button');
-    loginLink.addEventListener('click', loginUser);
+    loginLink.addEventListener('click', login.loginUser.bind(login));
 
     let logoutLink = document.getElementById('logout-button');
-    logoutLink.addEventListener('click', logoutUser);
+    logoutLink.addEventListener('click', login.logoutUser.bind(login));
   }
 
   db.changes({
@@ -164,26 +102,9 @@ PouchDB_.plugin(require('pouchdb-authentication'));
     syncDom.setAttribute('data-sync-state', 'error');
   }
 
-  // User has double clicked a todo, display an input so they can edit the title
-  function todoDblClicked(todo: TodoItem) {
-    let div = document.getElementById('li_' + todo._id);
-    let inputEditTodo = document.getElementById('input_' + todo._id);
-    div.className = 'editing';
-    inputEditTodo.focus();
-  }
-
-  // If they press enter while editing an entry, blur it to trigger save
-  // (or delete)
-  function todoKeyPressed(todo, event) {
-    if (event.keyCode === ENTER_KEY) {
-      let inputEditTodo = document.getElementById('input_' + todo._id);
-      inputEditTodo.blur();
-    }
-  }
-
   setupHeadline();
   showTodos();
-  showLogin();
+  login.showLogin();
 
   if (remoteDb) {
     sync();
