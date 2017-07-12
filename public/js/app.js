@@ -8,27 +8,67 @@
   // EDITING STARTS HERE (you dont need to edit anything above this line)
 
   var app = new Vue({
-    el: '#todoapp',
+    el: '#subprojectapp',
     data: {
       searchString: '',
-      projects: []
+      username: '',
+      projects: [],
+      selectedProject: -1,
+      syncState: 'test'
     },
     watch: {
     },
     computed: {
       filteredProjects: function() {
         var that = this;
-        return this["projects"].filter(function (p) {
-          return p.doc.title.indexOf(that["searchString"]) > -1;
+        var result = this.projects.filter(function (p) {
+          return p.doc.title.indexOf(that.searchString) > -1 || (p.doc.description !== undefined && p.doc.description.indexOf(that.searchString) > -1);
         });
+        return result;
+      },
+      isUserLoggedIn: function() {
+        return this.username !== '';
       }
     },
     methods: {
-      showCreateProject: function() {
-        showCreateProject(this["searchString"]);
-        this["searchString"] = '';
+      isSelected: function(p) {
+        return this.filteredProjects.indexOf(p) == this.selectedProject;
       },
-      createProject: createProject
+      searchInputFocus: function() {
+        this.selectedProject = -1;
+      },
+      searchInputBlur: function() {
+        this.selectedProject = -1;
+      },
+      searchInputKeyUp: function(event) {
+        if (event.keyCode === ENTER_KEY) {
+          if (this.selectedProject === -1) {
+            showCreateProject(this.searchString);
+          }
+          else {
+            showStartProject(this.filteredProjects[this.selectedProject].doc);
+          }
+          this.searchString = '';
+        }
+        else if (event.keyCode == 38) { // up
+          if (this.selectedProject === -1) {
+            this.selectedProject = 0;
+          }
+          else if (this.selectedProject > 0) {
+            this.selectedProject--;
+          }
+        }
+        else if (event.keyCode == 40) { // down
+          if (this.selectedProject === -1) {
+            this.selectedProject = 0;
+          }
+          else if (this.selectedProject < this.filteredProjects.length-1) {
+            this.selectedProject++;
+          }
+        }
+      },
+      createProject: createProject,
+      contributeToProject: contributeToProject
     },
     directives: {
     }
@@ -91,13 +131,9 @@
       if (err) {
         console.log('getSession network error');
       } else if (!response.userCtx.name) {
-        console.log('nobody logged in');
-        var statusLine = document.getElementById('status-line');
-        statusLine.innerHTML = 'Nobody logged in';
+        app.username = '';
       } else {
-        console.log(response.userCtx.name);
-        var statusLine = document.getElementById('status-line');
-        statusLine.innerHTML = 'Welcome, '+response.userCtx.name;
+        app.username = response.userCtx.name;
       }
     });
   }
@@ -124,19 +160,36 @@
     var titleInput = document.getElementById('create-project-title');
     var descInput = document.getElementById('create-project-description');
     titleInput.value = title;
+    descInput.value = '';
     descInput.focus();
+  }
+
+  function showStartProject(project) {
+    var panel = $('#contribute-project-panel');
+    panel.modal();
+    var titleInput = document.getElementById('contribute-project-title');
+    var descInput = document.getElementById('contribute-project-description');
+    var commentInput = document.getElementById('contribute-project-comment');
+    titleInput.value = project.title;
+    descInput.value = project.description;
+    commentInput.value = '';
+    commentInput.focus();
   }
 
   function createProject() {
     var titleInput = document.getElementById('create-project-title');
     var descInput = document.getElementById('create-project-description');
-    addTodo(titleInput.value);
+    addProject(titleInput.value, descInput.value);
   }
 
-  function addTodo(text) {
+  function contributeToProject() {
+  }
+
+  function addProject(text, desc) {
     var todo = {
       _id: new Date().toISOString(),
       title: text,
+      description: desc,
       completed: false
     };
     console.log('db.put' + todo);
@@ -157,7 +210,7 @@
 
   // Initialise a sync with the remote server
   function sync() {
-    syncDom.setAttribute('data-sync-state', 'syncing');
+    app.syncState = 'Syncing';
     var opts = {live: true};
     db.replicate.to(remoteDb, opts, syncError);
     db.replicate.from(remoteDb, opts, syncError);
@@ -165,7 +218,7 @@
 
   // There was some form or error syncing
   function syncError() {
-    syncDom.setAttribute('data-sync-state', 'error');
+    app.syncState = 'Sync error';
   }
 
   setupHeadline();
