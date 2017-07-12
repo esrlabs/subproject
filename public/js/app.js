@@ -16,14 +16,16 @@
       selectedProject: -1,
       syncState: 'test',
       activeContribution: '',
-      contributionStartTime: null,
+      liveStartTime: null,
+      liveProject: null,
+      lastContributionProject: null,
       nowTime: null
     },
     watch: {
     },
     computed: {
       contributionTimeString: function() {
-        var sec_num = this.nowTime - this.contributionStartTime; 
+        var sec_num = this.nowTime - this.liveStartTime; 
         return secondsToTimeString(sec_num);
       },
       filteredProjects: function() {
@@ -56,7 +58,7 @@
             showCreateProject(this.searchString);
           }
           else {
-            showStartProject(this.filteredProjects[this.selectedProject].doc);
+            showContribution(this.filteredProjects[this.selectedProject].doc);
           }
           this.searchString = '';
         }
@@ -78,7 +80,11 @@
         }
       },
       createProject: createProject,
-      contributeToProject: contributeToProject
+      contributeToProject: contributeToProject,
+      contributeLive: contributeLive,
+      editLiveContribution: function() {
+        showContribution(this.lastContributionProject);
+      }
     },
     directives: {
     }
@@ -189,16 +195,20 @@
     descInput.focus();
   }
 
-  function showStartProject(project) {
+  function showContribution(project) {
     var panel = $('#contribute-project-panel');
     panel.modal();
     var titleInput = document.getElementById('contribute-project-title');
     var descInput = document.getElementById('contribute-project-description');
     var commentInput = document.getElementById('contribute-project-comment');
+    $('#contribution-start-picker').data("DateTimePicker").date(new Date());
+    $('#contribution-duration-picker').data("DateTimePicker").date("01:00");
     titleInput.value = project.title;
     descInput.value = project.description;
     commentInput.value = '';
-    commentInput.focus();
+    // hack since just focus doesn't work if datepicker is used
+    window.setTimeout(function() { commentInput.focus(); }, 500);
+    app.lastContributionProject = project;
   }
 
   function createProject() {
@@ -208,8 +218,12 @@
   }
 
   function contributeToProject() {
+    console.log("create contribution");
+  }
+
+  function contributeLive() {
     var titleInput = document.getElementById('contribute-project-title');
-    app.contributionStartTime = currentTimeInSeconds();
+    app.liveStartTime = currentTimeInSeconds();
     app.activeContribution = titleInput.value;
   }
 
@@ -252,7 +266,10 @@
   setupHeadline();
   showTodos();
   showLogin();
-
+  $(function () {
+    $('#contribution-start-picker').datetimepicker({showTodayButton: true});
+    $('#contribution-duration-picker').datetimepicker({format: 'HH:mm'});
+  });
   setInterval(function(){ app.nowTime = currentTimeInSeconds(); }, 1000);
 
   if (remoteDb) {
