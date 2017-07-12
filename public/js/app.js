@@ -17,15 +17,27 @@
       syncState: 'test',
       activeContribution: null,
       editContribution: null,
-      liveStartTime: null,
       nowTime: null
     },
     watch: {
     },
     computed: {
+      activeContributionTitle: function() {
+        if (this.activeContribution !== null) {
+          return this.activeContribution.project.title;
+        }
+        else {
+          return "";
+        }
+      },
       contributionTimeString: function() {
-        var sec_num = this.nowTime - this.liveStartTime; 
-        return secondsToTimeString(sec_num);
+        if (this.activeContribution !== null) {
+          var sec_num = Math.trunc(((this.nowTime.toDate()).getTime() - (this.activeContribution.start.toDate()).getTime())/1000);
+          return secondsToTimeString(sec_num);
+        }
+        else {
+          return '';
+        }
       },
       filteredProjects: function() {
         var that = this;
@@ -128,10 +140,6 @@
 
   var db = new PouchDB('todos');
   var remoteDb = new PouchDB('http://admin:admin@192.168.33.10:5984/todos', {skip_setup: true});
-
-  function currentTimeInSeconds() {
-    return Math.trunc(new Date().getTime()/1000);
-  }
 
   function secondsToTimeString(sec_num) {
     var hours   = Math.floor(sec_num / 3600);
@@ -239,6 +247,9 @@
     var descInput = document.getElementById('contribute-project-description');
     var commentInput = document.getElementById('contribute-project-comment');
     $('#contribution-start-picker').data("DateTimePicker").date(contrib.start);
+    if (isLive) {
+      contrib.duration = moment.duration(Math.trunc(((app.nowTime.toDate()).getTime() - (app.activeContribution.start.toDate()).getTime())));
+    }
     var base = moment("01-01-2000","MM-DD-YYYY")
     $('#contribution-duration-picker').data("DateTimePicker").date(base.add(contrib.duration).format("HH:mm"));
     titleInput.value = contrib.project.title;
@@ -270,12 +281,12 @@
       hours: durDate.hours()
     })
     addContribution(app.editContribution);
+    app.activeContribution = null;
   }
 
   function contributeLive() {
     var titleInput = document.getElementById('contribute-project-title');
-    app.liveStartTime = currentTimeInSeconds();
-    app.activeContribution = titleInput.value;
+    app.activeContribution = app.editContribution;
   }
 
   function addProject(text, desc) {
@@ -306,13 +317,13 @@
   }
 
   function addContribution(contrib) {
-    // TODO: this modifies the contribution object
-    contrib.project = contrib.project._id;
-    contrib.start = contrib.start.format("MM-DD-YYYY HH:mm")
-    contrib.duration = moment.utc(contrib.duration.asMilliseconds()).format("HH:mm")
+    var todb = Object.assign({}, contrib);
+    todb.project = todb.project._id;
+    todb.start = todb.start.format("MM-DD-YYYY HH:mm")
+    todb.duration = moment.utc(todb.duration.asMilliseconds()).format("HH:mm")
     console.log('db.put:')
-    console.log(contrib);
-    db.put(contrib, function callback(err, result) {
+    console.log(todb);
+    db.put(todb, function callback(err, result) {
       if (!err) {
         console.log('Successfully posted a contribution!');
       }
@@ -351,7 +362,7 @@
     $('#contribution-start-picker').datetimepicker({showTodayButton: true});
     $('#contribution-duration-picker').datetimepicker({format: 'HH:mm'});
   });
-  setInterval(function(){ app.nowTime = currentTimeInSeconds(); }, 1000);
+  setInterval(function(){ app.nowTime = moment(); }, 1000);
 
   if (remoteDb) {
     sync();
