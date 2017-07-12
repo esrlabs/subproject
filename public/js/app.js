@@ -15,10 +15,9 @@
       projects: [],
       selectedProject: -1,
       syncState: 'test',
-      activeContribution: '',
+      activeContribution: null,
+      editContribution: null,
       liveStartTime: null,
-      liveProject: null,
-      lastContributionProject: null,
       nowTime: null
     },
     watch: {
@@ -39,7 +38,7 @@
         return this.username !== '';
       },
       isActiveContribution: function() {
-        return this.activeContribution !== '';
+        return this.activeContribution !== null;
       }
     },
     methods: {
@@ -58,7 +57,8 @@
             showCreateProject(this.searchString);
           }
           else {
-            showContribution(this.filteredProjects[this.selectedProject].doc);
+            this.editContribution = createContribution(this.filteredProjects[this.selectedProject].doc);
+            showContribution();
           }
           this.searchString = '';
         }
@@ -83,7 +83,6 @@
       contributeToProject: contributeToProject,
       contributeLive: contributeLive,
       editLiveContribution: function() {
-        showContribution(this.lastContributionProject);
       }
     },
     directives: {
@@ -195,20 +194,21 @@
     descInput.focus();
   }
 
-  function showContribution(project) {
+  function showContribution() {
     var panel = $('#contribute-project-panel');
     panel.modal();
+    var contrib = app.editContribution;
     var titleInput = document.getElementById('contribute-project-title');
     var descInput = document.getElementById('contribute-project-description');
     var commentInput = document.getElementById('contribute-project-comment');
-    $('#contribution-start-picker').data("DateTimePicker").date(new Date());
-    $('#contribution-duration-picker').data("DateTimePicker").date("01:00");
-    titleInput.value = project.title;
-    descInput.value = project.description;
-    commentInput.value = '';
+    $('#contribution-start-picker').data("DateTimePicker").date(contrib.start);
+    var base = moment("01-01-2000","MM-DD-YYYY")
+    $('#contribution-duration-picker').data("DateTimePicker").date(base.add(contrib.duration).format("HH:mm"));
+    titleInput.value = contrib.project.title;
+    descInput.value = contrib.project.description;
+    commentInput.value = contrib.comment;
     // hack since just focus doesn't work if datepicker is used
     window.setTimeout(function() { commentInput.focus(); }, 500);
-    app.lastContributionProject = project;
   }
 
   function createProject() {
@@ -218,7 +218,15 @@
   }
 
   function contributeToProject() {
-    console.log("create contribution");
+    var commentInput = document.getElementById('contribute-project-comment');
+    app.editContribution.comment = commentInput.value;
+    app.editContribution.start = $('#contribution-start-picker').data("DateTimePicker").date();
+    var durDate = app.editContribution.duration = $('#contribution-duration-picker').data("DateTimePicker").date();
+    app.editContribution.duration = moment.duration({
+      minutes: durDate.minutes(),
+      hours: durDate.hours()
+    })
+    addContribution(app.editContribution);
   }
 
   function contributeLive() {
@@ -237,7 +245,33 @@
     console.log('db.put' + todo);
     db.put(todo, function callback(err, result) {
       if (!err) {
-        console.log('Successfully posted a todo!');
+        console.log('Successfully posted a project!');
+      }
+    });
+  }
+
+  function createContribution(project) {
+    var start = moment();
+    return {
+      _id: new Date().toISOString(),
+      project: project,
+      user: app.username,
+      comment: '',
+      start: start,
+      duration: moment.duration(1, 'hours')
+    };
+  }
+
+  function addContribution(contrib) {
+    // TODO: this modifies the contribution object
+    contrib.project = contrib.project._id;
+    contrib.start = contrib.start.format("MM-DD-YYYY HH:mm")
+    contrib.duration = moment.utc(contrib.duration.asMilliseconds()).format("HH:mm")
+    console.log('db.put:')
+    console.log(contrib);
+    db.put(contrib, function callback(err, result) {
+      if (!err) {
+        console.log('Successfully posted a contribution!');
       }
     });
   }
@@ -246,7 +280,7 @@
   function showTodos() {
     db.allDocs({include_docs: true, descending: true}).then(function(doc) {
       console.log(doc.rows)
-      app.$data["projects"] = doc.rows
+      app.$data["projects"] = doc.rows.filter(function(r) { return r.doc.title !== undefined });
     });
   }
 
