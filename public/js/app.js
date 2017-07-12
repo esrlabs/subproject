@@ -106,6 +106,11 @@
         var desc = document.getElementById('create-project-description');
         desc.value += t + " ";
       },
+	  showDetails: function(p) {
+		$("#propertyDetailsTitle")[0].innerHTML=p.doc.title;
+		$("#propertyDetailsDescription")[0].innerHTML=p.doc.description;
+		$("#projectDetails").modal();
+	  },
       createProject: createProject,
       contributeToProject: contributeToProject,
       contributeLive: contributeLive,
@@ -301,6 +306,10 @@
         console.log('Successfully posted a contribution!');
       }
     });
+  }
+  
+  function viewDetails() {
+	  
   }
 
   // Show the current list of todos by reading them from the database
