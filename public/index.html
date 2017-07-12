@@ -15,6 +15,8 @@
     <div class="col-md-12">
 
     <div id="head-line">
+      <button type="button" v-show="!activeContribution" class="btn btn-default" disabled>No Active Contribution</button>
+      <button type="button" v-show="activeContribution" class="btn btn-primary">{{activeContribution}}: {{contributionTimeString}}</button>
       <div class="pull-right">
       <button type="button" v-show="isUserLoggedIn" id="logout-button" class="btn btn-warning">Logout</button>
       <button type="button" v-show="!isUserLoggedIn" class="btn btn-warning" data-toggle="modal" data-target="#loginModal">Login</button>

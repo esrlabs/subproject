@@ -14,11 +14,18 @@
       username: '',
       projects: [],
       selectedProject: -1,
-      syncState: 'test'
+      syncState: 'test',
+      activeContribution: '',
+      contributionStartTime: null,
+      nowTime: null
     },
     watch: {
     },
     computed: {
+      contributionTimeString: function() {
+        var sec_num = this.nowTime - this.contributionStartTime; 
+        return secondsToTimeString(sec_num);
+      },
       filteredProjects: function() {
         var that = this;
         var result = this.projects.filter(function (p) {
@@ -28,6 +35,9 @@
       },
       isUserLoggedIn: function() {
         return this.username !== '';
+      },
+      isActiveContribution: function() {
+        return this.activeContribution !== '';
       }
     },
     methods: {
@@ -76,6 +86,21 @@
 
   var db = new PouchDB('todos');
   var remoteDb = new PouchDB('http://admin:admin@192.168.33.10:5984/todos', {skip_setup: true});
+
+  function currentTimeInSeconds() {
+    return Math.trunc(new Date().getTime()/1000);
+  }
+
+  function secondsToTimeString(sec_num) {
+    var hours   = Math.floor(sec_num / 3600);
+    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+    var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+    if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    if (seconds < 10) {seconds = "0"+seconds;}
+    return hours+':'+minutes+':'+seconds;
+  }
 
   function signupUser() {
     var usernameInput = document.getElementById('signup-username');
@@ -183,6 +208,9 @@
   }
 
   function contributeToProject() {
+    var titleInput = document.getElementById('contribute-project-title');
+    app.contributionStartTime = currentTimeInSeconds();
+    app.activeContribution = titleInput.value;
   }
 
   function addProject(text, desc) {
@@ -224,6 +252,8 @@
   setupHeadline();
   showTodos();
   showLogin();
+
+  setInterval(function(){ app.nowTime = currentTimeInSeconds(); }, 1000);
 
   if (remoteDb) {
     sync();
