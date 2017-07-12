@@ -89,7 +89,7 @@
       <div id="header">
         <img id="subproject-logo" class="img-thumbnail center-block" src="style/subproject.png" />
         <div class="form-group">
-          <input id="new-todo" class="form-control input-lg" placeholder="What's next?" autocomplete="off" autofocus v-model="searchString" @keyup="searchInputKeyUp" @focus="searchInputFocus" @blur="searchInputBlur">
+          <input id="search-input" class="form-control input-lg" placeholder="What's next?" autocomplete="off" autofocus v-model="searchString" @keyup="searchInputKeyUp" @focus="searchInputFocus" @blur="searchInputBlur">
         </div>
       </div>
 
@@ -194,7 +194,7 @@
 
       <div id="main">
         <ul id="todo-list" class="list-group">
-          <li class="list-group-item" v-bind:class="{ 'list-group-item-info': isSelected(p) }" v-for="p in filteredProjects" @click="listItemClicked(p)">
+          <li class="list-group-item" v-bind:class="{ 'list-group-item-info': isSelected(p) }" v-for="p in filteredProjects" @click="listItemClicked(p, $event)">
             <div>
               {{p.doc.title}}
               <button id="detailsButton" type="button" class="btn btn-warning btn-xs pull-right" @click="showDetails(p)">

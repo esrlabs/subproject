@@ -75,9 +75,12 @@
       searchInputBlur: function() {
         this.selectedProject = -1;
       },
-      listItemClicked: function(p) {
-        this.editContribution = createContribution(p.doc);
-        showContribution(false);
+      listItemClicked: function(p, event) {
+        // TODO: little hack to prevent that a click on the 'details' button is used here
+        if (event.toElement.tagName === 'DIV') {
+          this.editContribution = createContribution(p.doc);
+          showContribution(false);
+        }
       },
       searchInputKeyUp: function(event) {
         if (event.keyCode === ENTER_KEY) {
@@ -106,16 +109,28 @@
             this.selectedProject++;
           }
         }
+        else if (event.keyCode == 39) { // right
+          if (this.selectedProject >= 0)
+          {
+            this.showDetails(this.filteredProjects[this.selectedProject]);
+          }
+        }
       },
       projectTags: function(p) {
-        var result;
+        var tags,
+            uniqTags;
         var desc = p.doc.description;
         if (!desc)
         {
           return [];
         }
-        result = desc.match(/\B\#\w+\b/g);
-        return result || [];
+        tags = desc.match(/\B\#\w+\b/g);
+        if (tags) {
+          uniqTags = tags.filter(function(item, pos) {
+            return (tags.indexOf(item) == pos);
+          });
+        }
+        return uniqTags || [];
       },
       insertTagToDesc: function(t) {
         console.log("insert " + t);
