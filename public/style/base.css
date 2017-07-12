@@ -12,3 +12,8 @@
   display: inline-block!important;
   margin: 3px 3px;
 }
+
+.list-group-item:hover {
+  color: #31708f;
+  background-color: #d9edf7;
+}

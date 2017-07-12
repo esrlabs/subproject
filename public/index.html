@@ -184,7 +184,7 @@
               </form>
             </div>
             <div class="modal-footer">
-              <button type="submit" class="btn btn-primary" data-dismiss="modal" @click="contributeLive">Live</button>
+              <button type="submit" id="contribute-live-button" class="btn btn-primary" data-dismiss="modal" @click="contributeLive">Live</button>
               <button type="submit" class="btn btn-primary" data-dismiss="modal" @click="contributeToProject">Contribute</button>
               <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
@@ -194,17 +194,17 @@
 
       <div id="main">
         <ul id="todo-list" class="list-group">
-          <li class="list-group-item" v-bind:class="{ 'list-group-item-info': isSelected(p) }" v-for="p in filteredProjects">
-                  <div>
-                    {{p.doc.title}}
-		    <button id="detailsButton" type="button" class="btn btn-warning btn-xs pull-right" @click="showDetails(p)">
-		    <span class="glyphicon glyphicon glyphicon-list"></span>
-		    </button>
-                  </div>
-                  <div>
-		    <span class="label label-info tag-label" v-for="t in projectTags(p)">{{t}}</span>
-                  </div>
-		  </li>
+          <li class="list-group-item" v-bind:class="{ 'list-group-item-info': isSelected(p) }" v-for="p in filteredProjects" @click="listItemClicked(p)">
+            <div>
+              {{p.doc.title}}
+              <button id="detailsButton" type="button" class="btn btn-warning btn-xs pull-right" @click="showDetails(p)">
+                <span class="glyphicon glyphicon glyphicon-list"></span>
+              </button>
+            </div>
+            <div>
+              <span class="label label-info tag-label" v-for="t in projectTags(p)">{{t}}</span>
+            </div>
+          </li>
         </ul>
       </div>
     </div>

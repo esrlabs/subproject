@@ -63,6 +63,10 @@
       searchInputBlur: function() {
         this.selectedProject = -1;
       },
+      listItemClicked: function(p) {
+        this.editContribution = createContribution(p.doc);
+        showContribution(false);
+      },
       searchInputKeyUp: function(event) {
         if (event.keyCode === ENTER_KEY) {
           if (this.selectedProject === -1) {
@@ -70,7 +74,7 @@
           }
           else {
             this.editContribution = createContribution(this.filteredProjects[this.selectedProject].doc);
-            showContribution();
+            showContribution(false);
           }
           this.searchString = '';
         }
@@ -115,6 +119,7 @@
       contributeToProject: contributeToProject,
       contributeLive: contributeLive,
       editLiveContribution: function() {
+        showContribution(true);
       }
     },
     directives: {
@@ -226,7 +231,7 @@
     descInput.focus();
   }
 
-  function showContribution() {
+  function showContribution(isLive) {
     var panel = $('#contribute-project-panel');
     panel.modal();
     var contrib = app.editContribution;
@@ -241,6 +246,12 @@
     commentInput.value = contrib.comment;
     // hack since just focus doesn't work if datepicker is used
     window.setTimeout(function() { commentInput.focus(); }, 500);
+    if (isLive) {
+      $('#contribute-live-button').hide();
+    }
+    else {
+      $('#contribute-live-button').show();
+    }
   }
 
   function createProject() {
