@@ -34,6 +34,18 @@
         });
         return result;
       },
+      allTags: function() {
+        var tags = [],
+            uniqTags,
+            that = this;
+        this.projects.forEach(function(p) {
+          tags = tags.concat(that.projectTags(p));
+        });
+        uniqTags = tags.filter(function(item, pos) {
+          return (tags.indexOf(item) == pos);
+        });
+        return uniqTags;
+      },
       isUserLoggedIn: function() {
         return this.username !== '';
       },
@@ -78,6 +90,21 @@
             this.selectedProject++;
           }
         }
+      },
+      projectTags: function(p) {
+        var result;
+        var desc = p.doc.description;
+        if (!desc)
+        {
+          return [];
+        }
+        result = desc.match(/\B\#\w+\b/g);
+        return result || [];
+      },
+      insertTagToDesc: function(t) {
+        console.log("insert " + t);
+        var desc = document.getElementById('create-project-description');
+        desc.value += t + " ";
       },
       createProject: createProject,
       contributeToProject: contributeToProject,

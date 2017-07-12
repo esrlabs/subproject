@@ -6,3 +6,9 @@
   width: 40%;
   margin-bottom: 20px;
 }
+
+.tag-label {
+  margin-left: 5px;
+  display: inline-block!important;
+  margin: 3px 3px;
+}

@@ -103,15 +103,23 @@
             <div class="modal-body">
               <form class="form-horizontal">
                 <div class="form-group">
-                  <label for="create-project-title" class="col-sm-2 control-label">Title</label>
-                  <div class="col-sm-10">
+                  <label for="create-project-title" class="col-sm-3 control-label">Title</label>
+                  <div class="col-sm-9">
                     <input type="text" class="form-control" id="create-project-title">
                   </div>
                 </div>
                 <div class="form-group">
-                  <label for="create-project-description" class="col-sm-2 control-label">Description</label>
-                  <div class="col-sm-10">
+                  <label for="create-project-description" class="col-sm-3 control-label">Description</label>
+                  <div class="col-sm-9">
                     <textarea class="form-control" id="create-project-description" rows="2"></textarea>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">Popular&nbsp;tags</label>
+                  <div class="col-sm-9">
+                    <div class="form-control-static">
+                      <span class="label label-info tag-label" v-for="t in allTags" @click="insertTagToDesc(t)">{{t}}</span>
+                    </div>
                   </div>
                 </div>
               </form>
@@ -186,7 +194,7 @@
 
       <div id="main">
         <ul id="todo-list" class="list-group">
-          <li class="list-group-item" v-bind:class="{ 'list-group-item-info': isSelected(p) }" v-for="p in filteredProjects">{{p.doc.title}}</li>
+          <li class="list-group-item" v-bind:class="{ 'list-group-item-info': isSelected(p) }" v-for="p in filteredProjects">{{p.doc.title}}<span class="label label-info tag-label" v-for="t in projectTags(p)">{{t}}</span></li>
         </ul>
       </div>
     </div>
