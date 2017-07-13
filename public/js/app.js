@@ -17,6 +17,7 @@
       syncState: 'test',
       activeContribution: null,
       editContribution: null,
+      contributions: null,
       nowTime: null
     },
     watch: {
@@ -138,9 +139,10 @@
         desc.value += t + " ";
       },
 	  showDetails: function(p) {
-		$("#propertyDetailsTitle")[0].innerHTML=p.doc.title;
-		$("#propertyDetailsDescription")[0].innerHTML=p.doc.description;
-		$("#projectDetails").modal();
+      $("#propertyDetailsTitle")[0].innerHTML=p.doc.title;
+      $("#propertyDetailsDescription")[0].innerHTML=p.doc.description;
+      $("#projectDetails").modal();
+      loadContributions(p);
 	  },
       createProject: createProject,
       contributeToProject: contributeToProject,
@@ -354,6 +356,14 @@
     db.allDocs({include_docs: true, descending: true}).then(function(doc) {
       console.log(doc.rows)
       app.$data["projects"] = doc.rows.filter(function(r) { return r.doc.title !== undefined });
+    });
+  }
+
+  function loadContributions(project) {
+    db.allDocs({include_docs: true, descending: true}).then(function(doc) {
+      console.log(doc.rows)
+      app.$data["contributions"] = doc.rows.filter(function(r) { return r.doc.project !== undefined && r.doc.project === project.doc._id && r.doc.user });
+      console.log(app.$data["contributions"]);
     });
   }
 
